@@ -45,7 +45,7 @@ object Search {
     index.getOrElse(term, Seq()).map(_._1)
   }
 
-  def addPageToIndex(index: Index, page: Node): Index = {
+  def addPageToIndex(stop: Set[String])(index: Index, page: Node): Index = {
     val id = getId(page)
     val text = getText(page)
     val pageIndex = indexText(text, id, stop)
@@ -58,12 +58,7 @@ object Search {
 
     val anarchism = "src/main/resources/wiki100k.xml"
     val source = XML.loadFile(anarchism)
-    val indices = (source \\ "mediawiki" \\ "page").map { page =>
-      val id = getId(page)
-      val text = getText(page)
-      indexText(text, id, stop)
-    }
-    val index = indices.reduceLeft(combineIndices)
+    val index = (source \\ "mediawiki" \\ "page").foldLeft(Map[String, Seq[(Int, Seq[Int])]]())(addPageToIndex(stop)(_, _))
 
     for (query <- args) {
       println(search(query, index, stop))
