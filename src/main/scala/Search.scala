@@ -1,5 +1,7 @@
 import collection.mutable.HashMap
+import java.io._
 import scala.io.Source
+import scala.util.Marshal
 import scala.xml.pull._
 import scala.xml._
 
@@ -99,21 +101,33 @@ object Search {
 
   def main(args: Array[String]) = {
 
-    val wikipedia = "src/main/resources/wiki100k.xml"
-    val source = Source.fromFile(wikipedia) // XML.loadFile(anarchism)
-    val index = new HashMap[String, Seq[(Int, Seq[Int])]]()
+    val indexFileName = "wikipedia_index.out"
 
-    val xml = new XMLEventReader(source)
-    parse(xml, index)
+    if (args.length == 0) {
+      val wikipedia = "src/main/resources/wiki1000.xml"
+      val source = Source.fromFile(wikipedia)
+      val index = new HashMap[String, Seq[(Int, Seq[Int])]]()
 
-    for (query <- args) {
-      println("Searching for " + query)
-      val ids = search(query, index)
-      for (id <- ids) {
-        println("\t" + id)
+      val xml = new XMLEventReader(source)
+      parse(xml, index)
+
+      val out = new FileOutputStream(indexFileName)
+      out.write(Marshal.dump(index))
+      out.close
+
+      println("Done.")
+    } else {
+      val in = new FileInputStream(indexFileName)
+      val bytes = Stream.continually(in.read).takeWhile(-1 != _).map(_.toByte).toArray
+      val index: Index = Marshal.load[Index](bytes)
+
+      for (query <- args) {
+        println("Searching for " + query)
+        val ids = search(query, index)
+        for (id <- ids) {
+          println("\t" + id)
+        }
       }
     }
-
-    println("Done.")
   }
 }
