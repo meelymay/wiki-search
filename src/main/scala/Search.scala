@@ -5,13 +5,10 @@ import scala.util.Marshal
 import scala.xml.pull._
 import scala.xml._
 
-object Search {
-  type IndexEntry = (Int, Seq[Int])
-  type Index = HashMap[String, Seq[IndexEntry]]
-  type Page = (Int, String)
-
+object Search extends WikiIndex {
   val stop = Source.fromFile("src/main/resources/stop2.txt").getLines.toSet
   val titleMap = new HashMap[Int, String]
+  val tokenMap = new HashMap[Int, String]
 
   def getTerms(text: String): Seq[String] = {
     // TODO stem the terms here?
@@ -28,15 +25,14 @@ object Search {
       Seq((id, vals.map(_._2)))
     } */
 
-    val index = new HashMap[String, Seq[(Int, Seq[Int])]]()
-    /* {
-      override def default(key: String) { Seq[(Int, Seq[Int])]((id, Seq[Int]())) }
-    } */
+    val index = new HashMap[String, Seq[IndexEntry]]()
     for ((word, position) <- terms.view.zipWithIndex) {
       index(word) = if (index.contains(word)) {
         Seq((id, index(word)(0)._2 ++ Seq(position)))
+        // index(word) ++ Seq((id, position))
       } else {
         Seq((id, Seq(position)))
+        // Seq((id, position))
       }
     }
     index
@@ -104,22 +100,21 @@ object Search {
     val indexFileName = "wikipedia_index.out"
 
     if (args.length == 0) {
-      val wikipedia = "src/main/resources/wiki1000.xml"
+      val wikipedia = "src/main/resources/wiki20k.xml"
       val source = Source.fromFile(wikipedia)
-      val index = new HashMap[String, Seq[(Int, Seq[Int])]]()
+      val index = new HashMap[String, Seq[IndexEntry]]()
 
       val xml = new XMLEventReader(source)
       parse(xml, index)
 
-      val out = new FileOutputStream(indexFileName)
-      out.write(Marshal.dump(index))
-      out.close
+      val numTokens = index.size
+      println("num tokens: " + numTokens)
+      val aveTokenLength = index.map(_._1.length).sum/numTokens
+      println("token len: " + aveTokenLength)
 
-      println("Done.")
+      dumpIndex(index, indexFileName)
     } else {
-      val in = new FileInputStream(indexFileName)
-      val bytes = Stream.continually(in.read).takeWhile(-1 != _).map(_.toByte).toArray
-      val index: Index = Marshal.load[Index](bytes)
+      val index = loadIndex(indexFileName)
 
       for (query <- args) {
         println("Searching for " + query)
@@ -129,5 +124,24 @@ object Search {
         }
       }
     }
+  }
+}
+
+trait WikiIndex {
+  type IndexEntry = (Int, Seq[Int])
+  // type IndexEntry = (Int, Int)
+  type Index = HashMap[String, Seq[IndexEntry]]
+  type Page = (Int, String)
+
+  def dumpIndex(index: Index, filename: String) {
+      val out = new FileOutputStream(filename)
+      out.write(Marshal.dump(index))
+      out.close
+  }
+
+  def loadIndex(filename: String): Index = {
+      val in = new FileInputStream(filename)
+      val bytes = Stream.continually(in.read).takeWhile(-1 != _).map(_.toByte).toArray
+      Marshal.load[Index](bytes)
   }
 }
