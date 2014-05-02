@@ -7,6 +7,7 @@ import scala.xml._
 
 object Search extends WikiIndex {
   val stop = Source.fromFile("src/main/resources/stop2.txt").getLines.toSet
+  // TODO store these maps along with the index
   val titleMap = new HashMap[Int, String]
   val tokenMap = new HashMap[Int, String]
 
@@ -14,25 +15,23 @@ object Search extends WikiIndex {
     // TODO stem the terms here?
     text.split("\\s+")
       .map(_.toLowerCase)
+      // TODO remove punctuation
       .filter(!stop.contains(_))
   }
 
   def indexText(text: String, id: Int): Index = {
     val terms = getTerms(text)
-    /* val occurrences = terms.zipWithIndex
-    val group = occurrences.groupBy(_._1)
-    group.mapValues { vals: Seq[(String, Int)] =>
-      Seq((id, vals.map(_._2)))
-    } */
 
-    val index = new HashMap[String, Seq[IndexEntry]]()
+    val index = new HashMap[Int, Seq[IndexEntry]]()
     for ((word, position) <- terms.view.zipWithIndex) {
-      index(word) = if (index.contains(word)) {
-        Seq((id, index(word)(0)._2 ++ Seq(position)))
-        // index(word) ++ Seq((id, position))
+      val token = word.hashCode
+      // TODO this hashCode is only 32 bit Ints
+      tokenMap(word.hashCode) = word
+
+      index(token) = if (index.contains(token)) {
+        index(token) ++ Seq((id, position))
       } else {
-        Seq((id, Seq(position)))
-        // Seq((id, position))
+        Seq((id, position))
       }
     }
     index
@@ -49,14 +48,19 @@ object Search extends WikiIndex {
     bigger
   }
 
-  def search(query: String, index: Index): Seq[Int] = {
+  def search(query: String, index: Index): Seq[String] = {
     val terms = getTerms(query)
     val term = terms(0)
-    index.getOrElse(term, Seq()).map(_._1)
+    val token = term.hashCode
+    index.getOrElse(token, Seq()).groupBy(_._1).map { document: (Int, Seq[(Int, Int)]) =>
+      titleMap(document._1)
+    }.toSeq
   }
 
   def addPageToIndex(index: Index, page: Page): Index = {
-    val (id, text) = page
+    val (id, title, text) = page
+    println(id + " " + title)
+    titleMap(id) = title
     val pageIndex = indexText(text, id)
     combineIndices(index, pageIndex)
   }
@@ -64,6 +68,7 @@ object Search extends WikiIndex {
   def parse(xml: XMLEventReader, index: Index) {
     val page = new StringBuilder()
     val id = new StringBuilder()
+    val title = new StringBuilder()
     def loop(currNode: List[String]) {
       if (xml.hasNext) {
         xml.next match {
@@ -71,8 +76,9 @@ object Search extends WikiIndex {
             loop(label :: currNode)
           case EvElemEnd(_, label) =>
             if (label == "page") {
-              addPageToIndex(index, (id.toString.trim.toInt, page.toString))
+              addPageToIndex(index, (id.toString.trim.toInt, title.toString, page.toString))
               id.delete(0, id.length)
+              title.delete(0, title.length)
               page.delete(0, page.length)
             }
             loop(currNode.tail)
@@ -81,7 +87,7 @@ object Search extends WikiIndex {
               page ++= " " + text
             }
             if (currNode.length > 0 && currNode(0) == "title") {
-              println(text)
+              title ++= text
               page ++= " " + text
             }
             if (currNode.length > 1 && currNode(0) == "id" && currNode(1) == "page") {
@@ -102,15 +108,18 @@ object Search extends WikiIndex {
     if (args.length == 0) {
       val wikipedia = "src/main/resources/wiki20k.xml"
       val source = Source.fromFile(wikipedia)
-      val index = new HashMap[String, Seq[IndexEntry]]()
+      val index = new HashMap[Int, Seq[IndexEntry]]()
 
       val xml = new XMLEventReader(source)
       parse(xml, index)
 
       val numTokens = index.size
       println("num tokens: " + numTokens)
-      val aveTokenLength = index.map(_._1.length).sum/numTokens
+      val aveTokenLength = index.map{ indexEntry: (Int, Seq[IndexEntry]) =>
+        tokenMap(indexEntry._1).length
+      }.sum/numTokens
       println("token len: " + aveTokenLength)
+      println("titles: " + titleMap.size)
 
       dumpIndex(index, indexFileName)
     } else {
@@ -128,10 +137,9 @@ object Search extends WikiIndex {
 }
 
 trait WikiIndex {
-  type IndexEntry = (Int, Seq[Int])
-  // type IndexEntry = (Int, Int)
-  type Index = HashMap[String, Seq[IndexEntry]]
-  type Page = (Int, String)
+  type IndexEntry = (Int, Int)
+  type Index = HashMap[Int, Seq[IndexEntry]]
+  type Page = (Int, String, String)
 
   def dumpIndex(index: Index, filename: String) {
       val out = new FileOutputStream(filename)
@@ -140,6 +148,7 @@ trait WikiIndex {
   }
 
   def loadIndex(filename: String): Index = {
+      // TODO this is fucked heap for some reason :-/
       val in = new FileInputStream(filename)
       val bytes = Stream.continually(in.read).takeWhile(-1 != _).map(_.toByte).toArray
       Marshal.load[Index](bytes)
