@@ -9,20 +9,27 @@ trait WikiIndex {
   type Index = HashMap[Int, Seq[IndexEntry]]
   type Page = (Int, String, String)
 
+  // TODO these filenames should also be arguments
   val indexFileName = "wikipedia_index.out"
   val tokenFileName = "wikipedia_tokens.out"
   val titleFileName = "wikipedia_titles.out"
-  val stopFileName = "src/main/resources/stop2.txt"
+  val stopFileName = "src/main/resources/stop.txt"
 
   val stop = Source.fromFile(stopFileName).getLines.toSet
 
+  /**
+   * Utility method to get single terms from strings.
+   */
   def getTerms(text: String): Seq[String] = {
     // TODO stem the terms here?
     text.split("\\s+")
       .map(_.toLowerCase.filter(Character.isLetter(_)))
-      // TODO remove punctuation
       .filter(!stop.contains(_))
   }
+
+  /*
+   * Serializing index
+   */
 
   def entryToString(indexEntry: IndexEntry): String = {
     indexEntry._1 + ":" + indexEntry._2
@@ -38,13 +45,6 @@ trait WikiIndex {
     s.toString
   }
 
-  def parseEntries(entries: String): Seq[IndexEntry] = {
-    entries.split(",").map { entry: String =>
-      val docPosition = entry.split(":")
-      (docPosition(0).toInt, docPosition(1).toInt)
-    }.toSeq
-  }
-
   def dumpIndex(index: Index, filename: String) {
       // val out = new FileOutputStream(filename)
       val out = new PrintWriter(new File(filename))
@@ -57,31 +57,15 @@ trait WikiIndex {
       out.close
   }
 
-  def idStringToString(idString: (Int, String)): String = {
-    idString._1 + ":" + idString._2
-  }
+  /*
+   * Deserializing index
+   */
 
-  def parseIdString(idString: String): (Int, String) = {
-    val idName = idString.split(":")
-    (idName(0).toInt, idName(1))
-  }
-
-  def loadIdMap(filename: String): Map[Int, String] = {
-    val in = Source.fromFile(filename)
-    val idMap = in.getLines.map { line =>
-      parseIdString(line)
-    }.toMap
-    in.close()
-
-    idMap
-  }
-
-  def dumpMap(idMap: Map[Int, String], filename: String) {
-    val out = new PrintWriter(new File(filename))
-    for (idString: (Int, String) <- idMap) {
-      out.write(idStringToString(idString) + "\n")
-    }
-    out.close
+  def parseEntries(entries: String): Seq[IndexEntry] = {
+    entries.split(",").map { entry: String =>
+      val docPosition = entry.split(":")
+      (docPosition(0).toInt, docPosition(1).toInt)
+    }.toSeq
   }
 
   def loadIndex(filename: String): Index = {
@@ -98,5 +82,44 @@ trait WikiIndex {
     in.close()
 
     index
+  }
+
+  /*
+   * Serialize tokens/titles
+   */
+
+  def idNameToString(idString: (Int, String)): String = {
+    idString._1 + ":" + idString._2
+  }
+
+  def dumpMap(idMap: Map[Int, String], filename: String) {
+    val out = new PrintWriter(new File(filename))
+    for (idString: (Int, String) <- idMap) {
+      out.write(idNameToString(idString) + "\n")
+    }
+    out.close
+  }
+
+  /*
+   * Deserialize tokens/titles
+   */
+
+  def parseIdString(idString: String): (Int, String) = {
+    val idName = idString.split(":")
+    if (idName.size == 2) {
+      (idName(0).toInt, idName(1))
+    } else {
+      (0, "")
+    }
+  }
+
+  def loadIdMap(filename: String): Map[Int, String] = {
+    val in = Source.fromFile(filename)
+    val idMap = in.getLines.map { line =>
+      parseIdString(line)
+    }.toMap
+    in.close()
+
+    idMap
   }
 }

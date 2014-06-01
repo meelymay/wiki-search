@@ -6,10 +6,12 @@ import scala.xml.pull._
 import scala.xml._
 
 object Index extends WikiIndex {
-  // TODO store these maps along with the index
   val titleMap = new HashMap[Int, String]
   val tokenMap = new HashMap[Int, String]
 
+  /**
+   * Create an Index from a single article and its id
+   */
   def indexText(text: String, id: Int): Index = {
     val terms = getTerms(text)
 
@@ -28,6 +30,9 @@ object Index extends WikiIndex {
     index
   }
 
+  /**
+   * Combine two Indices into a single Index
+   */
   def combineIndices(bigger: Index, smaller: Index): Index = {
     for ((term, entries) <- smaller) {
       bigger(term) = if (bigger.contains(term)) {
@@ -39,6 +44,9 @@ object Index extends WikiIndex {
     bigger
   }
 
+  /**
+   * Create a new Index from the Page and combine with the given Index
+   */
   def addPageToIndex(index: Index, page: Page): Index = {
     val (id, title, text) = page
     if (id % 10000 == 0) println(id + " " + title)
@@ -47,6 +55,11 @@ object Index extends WikiIndex {
     combineIndices(index, pageIndex)
   }
 
+  /**
+   * Create an Index from XML, while populating corresponding title and token maps
+   *
+   * (unused, from previous challenge description)
+   */
   def parse(xml: XMLEventReader, index: Index) {
     val page = new StringBuilder()
     val id = new StringBuilder()
@@ -83,6 +96,9 @@ object Index extends WikiIndex {
     loop(List.empty)
   }
 
+  /**
+   * Create an Index from a TSV, while populating corresponding title and token maps
+   */
   def parse(tsv: BufferedSource, index: Index) {
     for (line <- tsv.getLines()) {
       val fields = line.split("\t")
@@ -96,7 +112,7 @@ object Index extends WikiIndex {
     val source = Source.fromFile(wikipedia)
     val index = new HashMap[Int, Seq[IndexEntry]]()
 
-    // val xml = new XMLEventReader(source)
+    // populate the index and maps by parsing the tsv source
     parse(source, index)
 
     val numTokens = index.size
@@ -107,6 +123,7 @@ object Index extends WikiIndex {
     println("token len: " + aveTokenLength)
     println("titles: " + titleMap.size)
 
+    // serialize the index and maps to files
     dumpIndex(index, indexFileName)
     dumpMap(tokenMap.toMap, tokenFileName)
     dumpMap(titleMap.toMap, titleFileName)
