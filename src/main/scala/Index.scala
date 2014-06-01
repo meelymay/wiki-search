@@ -41,7 +41,7 @@ object Index extends WikiIndex {
 
   def addPageToIndex(index: Index, page: Page): Index = {
     val (id, title, text) = page
-    println(id + " " + title)
+    if (id % 10000 == 0) println(id + " " + title)
     titleMap(id) = title
     val pageIndex = indexText(text, id)
     combineIndices(index, pageIndex)
