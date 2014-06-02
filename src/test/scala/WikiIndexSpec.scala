@@ -1,15 +1,25 @@
 import collection.mutable.Stack
 import org.scalatest._
 
-class WikiIndexSpec extends FlatSpec {
+class WikiIndexSpec extends FlatSpec with WikiIndex {
 
-  "A Stack" should "pop values in last-in-first-out order" in {
-    println("wiki index vals")
-    assert(true)
+  "getTerms" should "split the terms" in {
+  	val termStr = "amelia skye"
+    val terms = getTerms(termStr)
+    assert(terms(0) == "amelia")
+    assert(terms(1) == "skye")
   }
 
-  it should "throw NoSuchElementException if an empty stack is popped" in {
-    println("wiki index throwin exc")
-    assert(true)
+  it should "remove non-letter characters" in {
+  	val termStr = "a.m'elia,"
+    val terms = getTerms(termStr)
+    assert(terms(0) == "amelia")
+  }
+
+  it should "remove stop words" in {
+  	val termStr = "amelia is the craziest"
+    val terms = getTerms(termStr)
+    assert(terms(0) == "amelia")
+    assert(terms(1) == "craziest")
   }
 }
