@@ -42,15 +42,15 @@ class IndexSpec extends FlatSpec with WikiIndex {
     assert(index.tokenMap == expTokens)
   }
 
- /* it should "normalize capitalization" {
+  it should "normalize capitalization" in {
   	val index = new WikipediaIndex()
     val id = 1
     val text = "Short DocumEnt teXt"
 
     val pageIndex: Index = index.indexText(text, id)
 
-    assert(true) // pageIndex == shortDocumentTextIndex)
-  } */
+    assert(pageIndex == shortDocumentTextIndex)
+  }
 
   "combineIndices" should "set a new index" in {
     val index = new WikipediaIndex()

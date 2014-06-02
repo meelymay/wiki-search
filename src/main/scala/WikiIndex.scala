@@ -64,7 +64,11 @@ trait WikiIndex {
   def parseEntries(entries: String): Seq[IndexEntry] = {
     entries.split(",").map { entry: String =>
       val docPosition = entry.split(":")
-      (docPosition(0).toInt, docPosition(1).toInt)
+      if (docPosition.size == 2) {
+        (docPosition(0).toInt, docPosition(1).toInt)
+      } else {
+        (0,0)
+      }
     }.toSeq
   }
 
