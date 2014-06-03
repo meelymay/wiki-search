@@ -51,11 +51,24 @@ class WikiIndexSpec extends FlatSpec with WikiIndex {
 	assert(ie == expIe)
   }
 
-  "idNameToString" should "" in {
-
+  "idNameToString" should "concat id and name" in {
+  	val ie = (12, "This is a Title")
+	val s = idNameToString(ie)
+	val expS = "12:This is a Title"
+	assert(s == expS)
   }
 
-  "parseIdString" should "" in {
+  "parseIdString" should "separate int and name" in {
+  	val s = "1001:A Title Article"
+	val ie = parseIdString(s)
+	val expIe = (1001, "A Title Article")
+	assert(ie == expIe)
+  }
 
+  it should "pase 0, empty string if malformed" in {
+  	val s = "1001 A Title Article"
+	val ie = parseIdString(s)
+	val expIe = (0, "")
+	assert(ie == expIe)
   }
 }
