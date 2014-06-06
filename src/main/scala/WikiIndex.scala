@@ -5,6 +5,7 @@ import scala.io.{BufferedSource, Source}
 
 trait WikiIndex {
 
+  // these should be 1. case classes, 2. the maps
   type IndexEntry = (Int, Int)
   type Index = HashMap[Int, Seq[IndexEntry]]
   type Page = (Int, String, String)

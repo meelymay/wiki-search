@@ -1,5 +1,6 @@
 import collection.mutable.HashMap
 import java.io._
+import scala.annotation.tailrec
 import scala.io.{BufferedSource, Source}
 import scala.util.Marshal
 import scala.xml.pull._
@@ -65,7 +66,7 @@ class WikipediaIndex extends WikiIndex {
     val page = new StringBuilder()
     val id = new StringBuilder()
     val title = new StringBuilder()
-    def loop(currNode: List[String]) {
+    @tailrec def loop(currNode: List[String]) {
       if (xml.hasNext) {
         xml.next match {
           case EvElemStart(_, label, _, _) =>

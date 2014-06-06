@@ -1,3 +1,4 @@
+import collection.mutable.HashMap
 import collection.mutable.Stack
 import org.scalatest._
 
@@ -70,5 +71,25 @@ class WikiIndexSpec extends FlatSpec with WikiIndex {
 	val ie = parseIdString(s)
 	val expIe = (0, "")
 	assert(ie == expIe)
+  }
+
+  "serialize map" should "write and read to file" in {
+	val m = Map(1 -> "Title Twenty",
+				345 -> "Eternal Sunshine",
+				987 -> "Adaptation Best Ever")
+	val filename = "test_map"
+	dumpMap(m, filename)
+	val readMap = loadIdMap(filename)
+	assert(m == readMap)
+  }
+
+  "serialize index" should "write and read to file" in {
+	val index = HashMap(1 -> Seq((1,2), (3,4), (5,6)),
+						345 -> Seq((987,876), (10000, 20000)),
+						987 -> Seq((11,22), (33,44), (55,66), (33,55)))
+	val filename = "test_map"
+	dumpIndex(index, filename)
+	val readIndex = loadIndex(filename)
+	assert(index == readIndex)
   }
 }
