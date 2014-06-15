@@ -1,8 +1,8 @@
 import org.scalatest._
 
-class SearchSpec extends FlatSpec {
+class SearchIndexSpec extends FlatSpec {
 
-  "A Stack" should "pop values in last-in-first-out order" in {
+  "tfidf" should "not pop vals" in {
     println("poppin vals")
     assert(true)
   }

@@ -1,16 +1,43 @@
 import collection.mutable.HashMap
 import org.scalatest._
 
-class IndexSpec extends FlatSpec with WikiIndex {
+class BuildIndexSpec extends FlatSpec {
+  import Index._
 
-  val shortDocumentTextIndex: Index = new HashMap()
+  val shortDocumentTextIndex: DocIndex = new HashMap()
   shortDocumentTextIndex.put(3556653, List((1,2)))
   shortDocumentTextIndex.put(109413500, List((1,0)))
   shortDocumentTextIndex.put(861720859, List((1,1)))
   val shortDocumentText: String = "short document text"
 
+  "getTerms" should "split the terms" in {
+    val index = new Index with BuildIndex
+
+    val termStr = "amelia skye"
+    val terms = index.getTerms(termStr)
+    assert(terms(0) == "amelia")
+    assert(terms(1) == "skye")
+  }
+
+  it should "remove non-letter characters" in {
+    val index = new Index with BuildIndex
+
+    val termStr = "a.m'elia,"
+    val terms = index.getTerms(termStr)
+    assert(terms(0) == "amelia")
+  }
+
+  it should "remove stop words" in {
+    val index = new Index with BuildIndex
+
+    val termStr = "amelia is the craziest"
+    val terms = index.getTerms(termStr)
+    assert(terms(0) == "amelia")
+    assert(terms(1) == "craziest")
+  }
+
   "indexText" should "create a single articles index" in {
-    val index = new WikipediaIndex()
+    val index = new Index with BuildIndex
     val id = 1
 
     val pageIndex = index.indexText(shortDocumentText, id)
@@ -25,7 +52,7 @@ class IndexSpec extends FlatSpec with WikiIndex {
   }
 
   it should "add multiple positions" in {
-    val index = new WikipediaIndex()
+    val index = new Index with BuildIndex
     val id = 1
     val text = shortDocumentText + " document short"
 
@@ -43,17 +70,17 @@ class IndexSpec extends FlatSpec with WikiIndex {
   }
 
   it should "normalize capitalization" in {
-  	val index = new WikipediaIndex()
+    val index = new Index with BuildIndex
     val id = 1
     val text = "Short DocumEnt teXt"
 
-    val pageIndex: Index = index.indexText(text, id)
+    val pageIndex: DocIndex = index.indexText(text, id)
 
     assert(pageIndex == shortDocumentTextIndex)
   }
 
   "combineIndices" should "set a new index" in {
-    val index = new WikipediaIndex()
+    val index = new Index with BuildIndex
     val id = 1
 
     val pageIndex = index.indexText(shortDocumentText, id)
@@ -65,7 +92,7 @@ class IndexSpec extends FlatSpec with WikiIndex {
   }
 
   it should "add a new document to the index" in {
-    val index = new WikipediaIndex()
+    val index = new Index with BuildIndex
     val id = 1
 
     val pageIndex = index.indexText(shortDocumentText, id)
@@ -90,7 +117,7 @@ class IndexSpec extends FlatSpec with WikiIndex {
   	val text = shortDocumentText
 	val page = (id, title, text)
 
-	val index = new WikipediaIndex()
+  val index = new Index with BuildIndex
 
 	index.addPageToIndex(page)
 

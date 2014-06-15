@@ -3,30 +3,12 @@ import java.io._
 import scala.util.Marshal
 import scala.io.{BufferedSource, Source}
 
-trait WikiIndex {
+trait SerializeIndex extends Index {
+  import Index._
 
-  // these should be 1. case classes, 2. the maps
-  type IndexEntry = (Int, Int)
-  type Index = HashMap[Int, Seq[IndexEntry]]
-  type Page = (Int, String, String)
-
-  // TODO these filenames should also be arguments
-  val indexFileName = "wikipedia_index.out"
-  val tokenFileName = "wikipedia_tokens.out"
-  val titleFileName = "wikipedia_titles.out"
-  val stopFileName = "src/main/resources/stop.txt"
-
-  val stop = Source.fromFile(stopFileName).getLines.toSet
-
-  /**
-   * Utility method to get single terms from strings.
-   */
-  def getTerms(text: String): Seq[String] = {
-    // TODO stem the terms here?
-    text.split("\\s+")
-      .map(_.toLowerCase.filter(Character.isLetter(_)))
-      .filter(!stop.contains(_))
-  }
+  val indexFilename = "wikipedia_index.out"
+  val tokenFilename = "wikipedia_tokens.out"
+  val titleFilename = "wikipedia_titles.out"
 
   /*
    * Serializing index
@@ -46,7 +28,7 @@ trait WikiIndex {
     s.toString
   }
 
-  def dumpIndex(index: Index, filename: String) {
+  def dumpIndex(filename: String) {
       // val out = new FileOutputStream(filename)
       val out = new PrintWriter(new File(filename))
       // out.write(Marshal.dump(index))
@@ -73,20 +55,17 @@ trait WikiIndex {
     }.toSeq
   }
 
-  def loadIndex(filename: String): Index = {
+  def loadIndex(filename: String) {
     // TODO this is fucked heap for some reason :-/
     val in = Source.fromFile(filename)
     // val bytes = in.map(_.toByte).toArray
     // Marshal.load[Index](bytes)
 
-    val index = new HashMap[Int,Seq[(Int, Int)]]()
     for (line <- in.getLines) {
       val term = line.split("\t")
       index.put(term(0).toInt, parseEntries(term(1)))
     }
     in.close()
-
-    index
   }
 
   /*
@@ -118,13 +97,45 @@ trait WikiIndex {
     }
   }
 
-  def loadIdMap(filename: String): Map[Int, String] = {
+  def loadIdMap(filename: String): Seq[(Int, String)] = {
     val in = Source.fromFile(filename)
     val idMap = in.getLines.map { line =>
+      println(line)
       parseIdString(line)
-    }.toMap
+    }
     in.close()
 
-    idMap
+    idMap.toSeq
+  }
+
+  def loadTokenMap() {
+    for ((id, name) <- loadIdMap(tokenFilename)) {
+      tokenMap.put(id, name)
+    }
+  }
+
+  def loadTitleMap() {
+    for ((id, name) <- loadIdMap(titleFilename)) {
+      titleMap.put(id, name)
+    }
+  }
+
+  /**
+   * Store the index in index, title, and token files
+   */
+  // indexFilename: String, titleFilename: String, tokenFilename: String
+  def serialize() {
+    dumpIndex(indexFilename)
+    dumpMap(tokenMap.toMap, tokenFilename)
+    dumpMap(titleMap.toMap, titleFilename)
+  }
+
+  /**
+   * Load the index from index, title, and token files
+   */
+  def deserialize() {
+    loadTitleMap()
+    loadTokenMap()
+    loadIndex(indexFilename)
   }
 }

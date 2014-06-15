@@ -5,16 +5,25 @@ import scala.util.Marshal
 import scala.xml.pull._
 import scala.xml._
 
-class Search(indexFilename: String, titleFilename: String, tokenFilename: String) extends WikiIndex {
-  // deserialize the title and token maps from files
-  val titleMap = loadIdMap(titleFilename)
-  val tokenMap = loadIdMap(tokenFilename)
-  val index = loadIndex(indexFilename)
+trait SearchIndex extends Index {
+  import Index._
+
+  /**
+   * Parse terms from query string.
+   * TODO make utility method, so similar to getTerms
+   */
+  def parseQuery(text: String): Seq[String] = {
+    // TODO stem the terms here?
+    text.split("\\s+")
+      .map(_.toLowerCase.filter(Character.isLetter(_)))
+      .filter(!stop.contains(_))
+  }
 
   /**
    * Calculate a simple tf-idf.
    */
   def tfIdf(doc: Seq[Int], numDocs: Int): Double = {
+    // TODO should use frequency of term instead of count in document
     val tf: Double = doc.size
     val idf: Double = Math.log(numDocs/titleMap.size)
     tf/idf
@@ -65,7 +74,7 @@ class Search(indexFilename: String, titleFilename: String, tokenFilename: String
   /**
    * Get all documents and positions lists for a token in the index.
    */
-  def matchingDocs(token: Int, index: Index): Map[Int, Seq[Int]] = {
+  def matchingDocs(token: Int, index: DocIndex): Map[Int, Seq[Int]] = {
     index.getOrElse(token, Seq()).groupBy(_._1)
       .map { document: (Int, Seq[(Int, Int)]) =>
       (document._1, document._2.map(_._2))
@@ -76,7 +85,7 @@ class Search(indexFilename: String, titleFilename: String, tokenFilename: String
    * Find the documents that match a query and rank them.
    */
   def search(query: String): Seq[String] = {
-    val terms = getTerms(query)
+    val terms = parseQuery(query)
     val tokens = terms.map(_.hashCode)
     val documents = tokens.map { token => matchingDocs(token, index) }
 
@@ -84,10 +93,12 @@ class Search(indexFilename: String, titleFilename: String, tokenFilename: String
   }
 }
 
-object Search {
+object SearchMain {
   def main(args: Array[String]) = {
     // deserialize the index
-    val wikipedia = new Search("wikipedia_index.out", "wikipedia_titles.out", "wikipedia_tokens.out")
+    // "wikipedia_index.out", "wikipedia_titles.out", "wikipedia_tokens.out"
+    val wikipedia = new Index with SearchIndex with SerializeIndex
+    wikipedia.deserialize()
 
     println("title map size: " + wikipedia.titleMap.size)
     println("token map size: " + wikipedia.tokenMap.size)
