@@ -55,15 +55,16 @@ class SerializeIndexSpec extends FlatSpec {
 	assert(ie == expIe)
   }
 
-  /* "serialize map" should "write and read to file" in {
-	val m = Map(1 -> "Title Twenty",
-				345 -> "Eternal Sunshine",
-				987 -> "Adaptation Best Ever")
+  "serialize map" should "write and read to file" in {
+	val index = new Index with SerializeIndex
+	val m = Seq((1, "Title Twenty"),
+				(345, "Eternal Sunshine"),
+				(987, "Adaptation Best Ever"))
 	val filename = "test_map"
-	dumpMap(m, filename)
+	index.dumpMap(m.toMap, filename)
 	val readMap = index.loadIdMap(filename)
 	assert(m == readMap)
-  } */
+  }
 
   /* "serialize index" should "write and read to file" in {
 	val index = HashMap(1 -> Seq((1,2), (3,4), (5,6)),

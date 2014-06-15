@@ -98,14 +98,9 @@ trait SerializeIndex extends Index {
   }
 
   def loadIdMap(filename: String): Seq[(Int, String)] = {
-    val in = Source.fromFile(filename)
-    val idMap = in.getLines.map { line =>
-      println(line)
+    Source.fromFile(filename).getLines.map { line =>
       parseIdString(line)
-    }
-    in.close()
-
-    idMap.toSeq
+    }.toSeq
   }
 
   def loadTokenMap() {
