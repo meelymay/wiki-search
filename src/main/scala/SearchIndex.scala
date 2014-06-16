@@ -11,7 +11,7 @@ trait SearchIndex extends Index {
   /**
    * Calculate a simple tf-idf.
    */
-  def tfIdf(doc: Seq[Int], numDocs: Int): Double = {
+  def tfIdf(doc: Seq[Position], numDocs: Int): Double = {
     // TODO should use frequency of term instead of count in document
     val tf: Double = doc.size
     val idf: Double = Math.log(titleMap.size.toDouble/numDocs)
@@ -21,14 +21,14 @@ trait SearchIndex extends Index {
   /**
    * Score a single document's positions list.
    */
-  def score(positions: Seq[Int]): Double = {
+  def score(positions: Seq[Position]): Double = {
     positions.size
   }
 
   /**
    * Score a pair of documents' positions lists.
    */
-  def score(positions: Seq[Int], positions2: Seq[Int]): Double = {
+  def score(positions: Seq[Position], positions2: Seq[Position]): Double = {
     0
   }
 
@@ -68,29 +68,35 @@ trait SearchIndex extends Index {
       doc2 <- docIds
     } yield doc1 & doc2 */
 
-    val docScores: Seq[(DocId, Double)] = documents.toSeq.flatMap { case (token, docs) =>
-      docs.toSeq.map { case (id, pos) =>
-        (id, score(pos))
+    val docScores: Seq[(DocId, Double)] = documents.toSeq
+      .flatMap { case (token, docs) =>
+        docs.toSeq.map { case (id, pos) =>
+          (id, score(pos))
+        }
       }
-    }
 
-    docScores.groupBy { _._1 }.map { case (id, scores) =>
-      val score = scores.map { _._2 }.sum
-      (id, score)
-    }.toSeq.sortBy { -_._2 }.map { _._1 }
+    docScores.groupBy { case (id, score) => id }
+      .map { case (id, scores) =>
+        (id, scores.map { case (doc, score) => score }.sum)
+      }.toSeq
+      .sortBy { case (id, score) => -score }
+      .map { case (id, score) => id }
   }
 
   /**
    * Get all documents and positions lists for a token in the index.
    */
-  def matchingDocs(token: Int): Map[Int, Seq[Int]] = {
-    index.getOrElse(token, Seq()).groupBy(_._1)
-      .map { document: (Int, Seq[(Int, Int)]) =>
-      (document._1, document._2.map(_._2))
+  def matchingDocs(token: Token): Map[DocId, Seq[Position]] = {
+    index.getOrElse(token, Seq()).groupBy { case (doc, positions) =>
+      doc
+    }.map { case (docId, documents) =>
+      (docId, documents.map { case (id, position) =>
+        position
+      })
     }
   }
 
-  def matchingDocs(term: String): Map[Int, Seq[Int]] = {
+  def matchingDocs(term: String): Map[DocId, Seq[Position]] = {
     matchingDocs(term.hashCode)
   }
 

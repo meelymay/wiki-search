@@ -18,7 +18,7 @@ trait SerializeIndex extends Index {
     indexEntry._1 + ":" + indexEntry._2
   }
 
-  def indexEntryToString(entry: (Int, Seq[IndexEntry])): String = {
+  def indexEntryToString(entry: (DocId, Seq[IndexEntry])): String = {
     val term = entry._1
     val docs = entry._2
     val s = new StringBuilder(term + "\t")
@@ -33,7 +33,7 @@ trait SerializeIndex extends Index {
       val out = new PrintWriter(new File(filename))
       // out.write(Marshal.dump(index))
 
-      for (entry: (Int, Seq[IndexEntry]) <- index) {
+      for (entry: (DocId, Seq[IndexEntry]) <- index) {
         out.write(indexEntryToString(entry) + "\n")
       }
 

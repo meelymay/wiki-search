@@ -9,15 +9,15 @@ import scala.xml._
 trait BuildIndex extends Index {
   import Index._
 
-  type Page = (Int, String, String)
+  type Page = (DocId, String, String)
 
   /**
    * Create an Index from a single article and its id
    */
-  def indexText(text: String, id: Int): DocIndex = {
+  def indexText(text: String, id: DocId): DocIndex = {
     val terms = getTerms(text)
 
-    val pageIndex = new HashMap[Int, Seq[IndexEntry]]()
+    val pageIndex = new HashMap[Token, Seq[IndexEntry]]()
     for ((word, position) <- terms.view.zipWithIndex) {
       val token = word.hashCode
       // TODO this hashCode is only 32 bit Ints
