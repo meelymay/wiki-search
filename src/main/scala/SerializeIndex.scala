@@ -9,6 +9,7 @@ trait SerializeIndex extends Index {
   val indexFilename = "wikipedia_index.out"
   val tokenFilename = "wikipedia_tokens.out"
   val titleFilename = "wikipedia_titles.out"
+  val docSizeFilename = "wikipedia_titles.out"
 
   /*
    * Serializing index
@@ -29,15 +30,11 @@ trait SerializeIndex extends Index {
   }
 
   def dumpIndex(filename: String) {
-      // val out = new FileOutputStream(filename)
-      val out = new PrintWriter(new File(filename))
-      // out.write(Marshal.dump(index))
-
-      for (entry: (DocId, Seq[IndexEntry]) <- index) {
-        out.write(indexEntryToString(entry) + "\n")
-      }
-
-      out.close
+    val out = new PrintWriter(new File(filename))
+    for (entry: (DocId, Seq[IndexEntry]) <- index) {
+      out.write(indexEntryToString(entry) + "\n")
+    }
+    out.close
   }
 
   /*
@@ -76,10 +73,22 @@ trait SerializeIndex extends Index {
     idString._1 + ":" + idString._2
   }
 
+  def idCountToString(idCount: (Int, Int)): String = {
+    idCount._1 + ":" + idCount._2
+  }
+
   def dumpMap(idMap: Map[Int, String], filename: String) {
     val out = new PrintWriter(new File(filename))
     for (idString: (Int, String) <- idMap) {
       out.write(idNameToString(idString) + "\n")
+    }
+    out.close
+  }
+
+  def dumpDocSize() {
+    val out = new PrintWriter(new File(docSizeFilename))
+    for (idString: (DocId, Int) <- docSizeMap) {
+      out.write(idCountToString(idString) + "\n")
     }
     out.close
   }
@@ -93,7 +102,14 @@ trait SerializeIndex extends Index {
     if (idName.size == 2) {
       (idName(0).toInt, idName(1))
     } else {
-      (0, "")
+      (0, "0")
+    }
+  }
+
+  def parseIdCount(idString: String): (Int, Int) = {
+    val p = parseIdString(idString)
+    p match {
+      case (id, count) => (id, count.toInt)
     }
   }
 
@@ -115,6 +131,12 @@ trait SerializeIndex extends Index {
     }
   }
 
+  def loadDocSizeMap() {
+    Source.fromFile(docSizeFilename).getLines.map { line =>
+      parseIdCount(line)
+    }.toSeq
+  }
+
   /**
    * Store the index in index, title, and token files
    */
@@ -123,12 +145,14 @@ trait SerializeIndex extends Index {
     dumpIndex(indexFilename)
     dumpMap(tokenMap.toMap, tokenFilename)
     dumpMap(titleMap.toMap, titleFilename)
+    dumpDocSize()
   }
 
   /**
    * Load the index from index, title, and token files
    */
   def deserialize() {
+    loadDocSizeMap()
     loadTitleMap()
     loadTokenMap()
     loadIndex(indexFilename)

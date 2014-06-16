@@ -51,7 +51,7 @@ class SerializeIndexSpec extends FlatSpec {
   it should "pase 0, empty string if malformed" in {
   	val s = "1001 A Title Article"
 	val ie = index.parseIdString(s)
-	val expIe = (0, "")
+	val expIe = (0, "0")
 	assert(ie == expIe)
   }
 
