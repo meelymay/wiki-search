@@ -65,14 +65,4 @@ class SerializeIndexSpec extends FlatSpec {
 	val readMap = index.loadIdMap(filename)
 	assert(m == readMap)
   }
-
-  /* "serialize index" should "write and read to file" in {
-	val index = HashMap(1 -> Seq((1,2), (3,4), (5,6)),
-						345 -> Seq((987,876), (10000, 20000)),
-						987 -> Seq((11,22), (33,44), (55,66), (33,55)))
-	val filename = "test_map"
-	dumpIndex(index, filename)
-	val readIndex = index.serialize(filename)
-	assert(index == readIndex)
-  } */
 }

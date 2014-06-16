@@ -12,16 +12,6 @@ trait BuildIndex extends Index {
   type Page = (Int, String, String)
 
   /**
-   * Utility method to get single terms from strings.
-   */
-  def getTerms(text: String): Seq[String] = {
-    // TODO stem the terms here?
-    text.split("\\s+")
-      .map(_.toLowerCase.filter(Character.isLetter(_)))
-      .filter(!stop.contains(_))
-  }
-
-  /**
    * Create an Index from a single article and its id
    */
   def indexText(text: String, id: Int): DocIndex = {

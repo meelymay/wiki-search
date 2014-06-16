@@ -14,7 +14,7 @@ class BuildIndexSpec extends FlatSpec {
     val index = new Index with BuildIndex
 
     val termStr = "amelia skye"
-    val terms = index.getTerms(termStr)
+    val terms = getTerms(termStr)
     assert(terms(0) == "amelia")
     assert(terms(1) == "skye")
   }
@@ -23,7 +23,7 @@ class BuildIndexSpec extends FlatSpec {
     val index = new Index with BuildIndex
 
     val termStr = "a.m'elia,"
-    val terms = index.getTerms(termStr)
+    val terms = getTerms(termStr)
     assert(terms(0) == "amelia")
   }
 
@@ -31,7 +31,7 @@ class BuildIndexSpec extends FlatSpec {
     val index = new Index with BuildIndex
 
     val termStr = "amelia is the craziest"
-    val terms = index.getTerms(termStr)
+    val terms = getTerms(termStr)
     assert(terms(0) == "amelia")
     assert(terms(1) == "craziest")
   }
@@ -101,7 +101,7 @@ class BuildIndexSpec extends FlatSpec {
     val id2 = 2
     // other is a stop word
     val text2 = "document other long short"
-	val pageIndex2 = index.indexText(text2, id2)
+    val pageIndex2 = index.indexText(text2, id2)
     index.combineIndices(pageIndex2)
 
     val expIndex = Map(3556653 -> List((1,2)),
@@ -112,19 +112,19 @@ class BuildIndexSpec extends FlatSpec {
   }
 
   "addPageToIndex" should "add index and add title and tokens to maps" in {
-  	val id = 1
+    val id = 1
   	val title = "an article"
   	val text = shortDocumentText
-	val page = (id, title, text)
+	  val page = (id, title, text)
 
-  val index = new Index with BuildIndex
+    val index = new Index with BuildIndex
 
-	index.addPageToIndex(page)
+	  index.addPageToIndex(page)
 
-	val expIndex = shortDocumentTextIndex
-	val expTitles = Map(1 -> title)
+  	val expIndex = shortDocumentTextIndex
+  	val expTitles = Map(1 -> title)
 
-	assert(index.index == expIndex)
-	assert(index.titleMap == expTitles)
+  	assert(index.index == expIndex)
+  	assert(index.titleMap == expTitles)
   }
 }

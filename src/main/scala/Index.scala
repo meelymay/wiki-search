@@ -4,15 +4,28 @@ import scala.io.{BufferedSource, Source}
 class Index {
   import Index._
 
-  val stopFilename = "src/main/resources/stop.txt"
-  val stop = Source.fromFile(stopFilename).getLines.toSet
-
-  val titleMap = new HashMap[Int, String]
-  val tokenMap = new HashMap[Int, String]
-  val index: DocIndex = new HashMap[Int, Seq[IndexEntry]]
+  val titleMap = new HashMap[DocId, String]
+  val tokenMap = new HashMap[Token, String]
+  val index: DocIndex = new HashMap[Token, Seq[IndexEntry]]
 }
 
 object Index {
-  type IndexEntry = (Int, Int)
-  type DocIndex = HashMap[Int, Seq[IndexEntry]]
+  type Token = Int
+  type Position = Int
+  type DocId = Int
+  type IndexEntry = (DocId, Position)
+  type DocIndex = HashMap[Token, Seq[IndexEntry]]
+
+  val stopFilename = "src/main/resources/stop.txt"
+  val stop = Source.fromFile(stopFilename).getLines.toSet
+
+  /**
+   * Utility method to get single terms from strings.
+   */
+  def getTerms(text: String): Seq[String] = {
+    // TODO stem the terms here?
+    text.split("\\s+")
+      .map(_.toLowerCase.filter(Character.isLetter(_)))
+      .filter(!stop.contains(_))
+  }
 }
