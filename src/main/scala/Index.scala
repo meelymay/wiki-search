@@ -5,7 +5,6 @@ class Index {
   import Index._
 
   val titleMap = new HashMap[DocId, String]
-  val docSizeMap = new HashMap[DocId, Int]
   val tokenMap = new HashMap[Token, String]
   val index: DocIndex = new HashMap[Token, Seq[IndexEntry]]
 }
