@@ -44,9 +44,9 @@ trait SearchIndex extends Index {
    */
   def rank(documents: Map[DocId, Seq[Position]]): Seq[DocId] = {
     val numDocs = documents.size
-    documents.toSeq.sortBy { doc: (Int, Seq[Int]) =>
-      -tfIdf(doc._2, numDocs)
-    }.map { doc: (Int, Seq[Int]) => doc._1 }
+    documents.toSeq.sortBy { case (doc, positions) =>
+      -tfIdf(positions, numDocs)
+    }.map { case (doc, positions) => doc }
   }
 
   /**

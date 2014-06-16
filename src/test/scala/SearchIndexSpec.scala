@@ -46,20 +46,20 @@ class SearchIndexSpec extends FlatSpec {
   				   "fish cat",
   				   "cow")
   	val index = createIndex(docs)
-  	val matching = Seq(index.matchingDocs("cat"),
-  					   index.matchingDocs("dog"),
-  					   index.matchingDocs("fish"))
-	val ranked = index.rank(matching)
-	val expRanked = Seq(2,0,1)
+	val matching = Map(98262   -> index.matchingDocs("cat"),
+					   199644  -> index.matchingDocs("dog"),
+					   3143256 -> index.matchingDocs("fish"))
+	val ranked = index.rankMultiple(matching)
+	val expRanked = Seq(1,2,0)
 
 	assert(ranked == expRanked)
   }
 
   "matchingDocs" should "get only docs with the term" in {
 	val docs = Seq("cat cat cat cat",
-  				   "dog cat cat",
-  				   "fish cat",
-  				   "cow")
+				   "dog cat cat",
+				   "fish cat",
+				   "cow")
   	val index = createIndex(docs)
   	val matching = index.matchingDocs("cat")
 	val expMatching = Map(0 -> Seq(0,1,2,3),
@@ -77,11 +77,21 @@ class SearchIndexSpec extends FlatSpec {
   	val index = createIndex(docs)
 
   	val results = index.search("cat")
-  	println("results " + results)
-  	println("titles " + index.titleMap)
 	val expResults = Seq("cat", "dog", "fish")
 
   	assert(results.toSeq == expResults)
+  }
+
+  "search" should "rank the doc with all terms highest" in {
+	val docs = Seq("cat dog",
+				   "dog cat fish",
+				   "fish cat cow",
+				   "cow")
+	val index = createIndex(docs)
+	val ranked = index.search("cat dog fish")
+	val expRanked = Seq("dog","fish","cat")
+
+	assert(ranked == expRanked)
   }
 
   def createIndex(documents: Seq[String]): SearchIndex = {
