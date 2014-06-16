@@ -40,7 +40,19 @@ class SearchIndexSpec extends FlatSpec {
 	assert(ranked == expRanked)
   }
 
-  "rankMultiple" should "" in {
+  "rankMultiple" should "rank highest doc containing all" in {
+  	val docs = Seq("cat dog",
+  				   "dog cat fish",
+  				   "fish cat",
+  				   "cow")
+  	val index = createIndex(docs)
+  	val matching = Seq(index.matchingDocs("cat"),
+  					   index.matchingDocs("dog"),
+  					   index.matchingDocs("fish"))
+	val ranked = index.rank(matching)
+	val expRanked = Seq(2,0,1)
+
+	assert(ranked == expRanked)
   }
 
   "matchingDocs" should "get only docs with the term" in {
