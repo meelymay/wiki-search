@@ -16,6 +16,7 @@ trait BuildIndex extends Index {
    */
   def indexText(text: String, id: DocId): DocIndex = {
     val terms = getTerms(text)
+    docSizeMap.put(id, terms.size)
 
     val pageIndex = new HashMap[Token, Seq[IndexEntry]]()
     for ((word, position) <- terms.view.zipWithIndex) {

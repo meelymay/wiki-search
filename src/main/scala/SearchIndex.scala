@@ -11,9 +11,9 @@ trait SearchIndex extends Index {
   /**
    * Calculate a simple tf-idf.
    */
-  def tfIdf(doc: Seq[Position], numDocs: Int): Double = {
+  def tfIdf(doc: Seq[Position], numDocs: Int, docSize: Int): Double = {
     // TODO should use frequency of term instead of count in document
-    val tf: Double = doc.size
+    val tf: Double = doc.size/docSize
     val idf: Double = Math.log(titleMap.size.toDouble/numDocs)
     tf/idf
   }
@@ -27,6 +27,8 @@ trait SearchIndex extends Index {
 
   /**
    * Score a pair of documents' positions lists.
+   *
+   * NOT IMPLEMENTED
    */
   def score(positions: Seq[Position], positions2: Seq[Position]): Double = {
     0
@@ -34,6 +36,8 @@ trait SearchIndex extends Index {
 
   /**
    * Score a set of documents' positions lists.
+   *
+   * NOT IMPLEMENTED
    */
   def scoreMultiple(positions: Seq[Seq[Position]]): Double = {
     0
@@ -45,33 +49,22 @@ trait SearchIndex extends Index {
   def rank(documents: Map[DocId, Seq[Position]]): Seq[DocId] = {
     val numDocs = documents.size
     documents.toSeq.sortBy { case (doc, positions) =>
-      -tfIdf(positions, numDocs)
+      -tfIdf(positions, numDocs, docSizeMap(doc))
     }.map { case (doc, positions) => doc }
   }
 
   /**
    * Order the set of articles from the articles that matched each term in the query.
-   *
-   * documents -> positions for each term
    */
   def rankMultiple(documents: Map[Token, Map[DocId, Seq[Position]]]): Seq[DocId] = {
     val docIds: Map[Int, Set[Int]] = documents.map { case (token, docs) =>
       (token, docs.keys.toSet)
     }.toMap
 
-    // full intersection set
-    /* val allIntersect = docIds.reduceLeft(_ & _)
-
-    // get pairwise intersections
-    val pairIntersects: Seq[Set[Int]] = for {
-      doc1 <- docIds;
-      doc2 <- docIds
-    } yield doc1 & doc2 */
-
     val docScores: Seq[(DocId, Double)] = documents.toSeq
       .flatMap { case (token, docs) =>
         docs.toSeq.map { case (id, pos) =>
-          (id, score(pos))
+          (id, tfIdf(pos, docs.size, docSizeMap(id)))
         }
       }
 
