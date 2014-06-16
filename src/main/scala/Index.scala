@@ -1,4 +1,4 @@
-import collection.mutable.HashMap
+import collection.mutable.{HashMap, MutableList}
 import scala.io.{BufferedSource, Source}
 
 class Index {
@@ -7,7 +7,7 @@ class Index {
   val titleMap = new HashMap[DocId, String]
   val docSizeMap = new HashMap[DocId, Int]
   val tokenMap = new HashMap[Token, String]
-  val index: DocIndex = new HashMap[Token, Seq[IndexEntry]]
+  val index: DocIndex = new DocIndex
 }
 
 object Index {
@@ -15,7 +15,7 @@ object Index {
   type Position = Int
   type DocId = Int
   type IndexEntry = (DocId, Position)
-  type DocIndex = HashMap[Token, Seq[IndexEntry]]
+  type DocIndex = HashMap[Token, MutableList[IndexEntry]]
 
   val stopFilename = "src/main/resources/stop.txt"
   val stop = Source.fromFile(stopFilename).getLines.toSet

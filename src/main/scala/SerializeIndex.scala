@@ -1,4 +1,4 @@
-import collection.mutable.HashMap
+import collection.mutable.{HashMap, MutableList}
 import java.io._
 import scala.util.Marshal
 import scala.io.{BufferedSource, Source}
@@ -49,7 +49,7 @@ trait SerializeIndex extends Index {
       } else {
         (0,0)
       }
-    }.toSeq
+    }
   }
 
   def loadIndex(filename: String) {
@@ -60,7 +60,9 @@ trait SerializeIndex extends Index {
 
     for (line <- in.getLines) {
       val term = line.split("\t")
-      index.put(term(0).toInt, parseEntries(term(1)))
+      val entries = new MutableList[IndexEntry]()
+      entries ++= parseEntries(term(1))
+      index.put(term(0).toInt, entries)
     }
     in.close()
   }

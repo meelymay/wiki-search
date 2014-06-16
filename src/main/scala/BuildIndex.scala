@@ -1,4 +1,4 @@
-import collection.mutable.HashMap
+import collection.mutable.MutableList
 import java.io._
 import scala.annotation.tailrec
 import scala.io.{BufferedSource, Source}
@@ -14,23 +14,22 @@ trait BuildIndex extends Index {
   /**
    * Create an Index from a single article and its id
    */
-  def indexText(text: String, id: DocId): DocIndex = {
+  def indexText(text: String, id: DocId) {
     val terms = getTerms(text)
     docSizeMap.put(id, terms.size)
 
-    val pageIndex = new HashMap[Token, Seq[IndexEntry]]()
+    // val pageIndex = new DocIndex()
     for ((word, position) <- terms.view.zipWithIndex) {
       val token = word.hashCode
       // TODO this hashCode is only 32 bit Ints
       tokenMap(word.hashCode) = word
 
-      pageIndex(token) = if (pageIndex.contains(token)) {
-        pageIndex(token) ++ Seq((id, position))
-      } else {
-        Seq((id, position))
+      if (!index.contains(token)) {
+        index(token) = new MutableList[IndexEntry]()
       }
+      val entry = (id, position)
+      index(token) += entry
     }
-    pageIndex
   }
 
   /**
@@ -38,10 +37,10 @@ trait BuildIndex extends Index {
    */
   def combineIndices(smaller: DocIndex) {
     for ((term, entries) <- smaller) {
-      index(term) = if (index.contains(term)) {
-        index(term) ++ entries
+      if (index.contains(term)) {
+        index(term) ++= entries
       } else {
-        entries
+        index(term) = entries
       }
     }
   }
@@ -52,10 +51,12 @@ trait BuildIndex extends Index {
    */
   def addPageToIndex(page: Page) {
     val (id, title, text) = page
-    if (id % 10000 == 0) println(id + " " + title)
+    if (id % 5000 == 0) println(id + " " + title)
     titleMap(id) = title
+    val start = System.nanoTime()
     val pageIndex = indexText(text, id)
-    combineIndices(pageIndex)
+    val start2 = System.nanoTime()
+    // combineIndices(pageIndex)
   }
 
   /**

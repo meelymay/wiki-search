@@ -1,13 +1,13 @@
-import collection.mutable.HashMap
+import collection.mutable.{HashMap, MutableList}
 import org.scalatest._
 
 class BuildIndexSpec extends FlatSpec {
   import Index._
 
   val shortDocumentTextIndex: DocIndex = new HashMap()
-  shortDocumentTextIndex.put(3556653, List((1,2)))
-  shortDocumentTextIndex.put(109413500, List((1,0)))
-  shortDocumentTextIndex.put(861720859, List((1,1)))
+  shortDocumentTextIndex.put(3556653, MutableList((1,2)))
+  shortDocumentTextIndex.put(109413500, MutableList((1,0)))
+  shortDocumentTextIndex.put(861720859, MutableList((1,1)))
   val shortDocumentText: String = "short document text"
 
   "getTerms" should "split the terms" in {
@@ -40,14 +40,14 @@ class BuildIndexSpec extends FlatSpec {
     val index = new Index with BuildIndex
     val id = 1
 
-    val pageIndex = index.indexText(shortDocumentText, id)
+    index.indexText(shortDocumentText, id)
 
     val expIndex = shortDocumentTextIndex
-	val expTokens = Map(3556653 -> "text",
+	  val expTokens = Map(3556653 -> "text",
 			 			109413500 -> "short",
 			 			861720859 -> "document")
 
-    assert(pageIndex == expIndex)
+    assert(index.index == expIndex)
     assert(index.tokenMap == expTokens)
   }
 
@@ -56,7 +56,7 @@ class BuildIndexSpec extends FlatSpec {
     val id = 1
     val text = shortDocumentText + " document short"
 
-    val pageIndex = index.indexText(text, id)
+    index.indexText(text, id)
 
     val expIndex = Map(3556653 -> List((1,2)),
     				   109413500 -> List((1,0), (1,4)),
@@ -65,7 +65,7 @@ class BuildIndexSpec extends FlatSpec {
 			 			109413500 -> "short",
 			 			861720859 -> "document")
 
-    assert(pageIndex == expIndex)
+    assert(index.index == expIndex)
     assert(index.tokenMap == expTokens)
   }
 
@@ -74,17 +74,16 @@ class BuildIndexSpec extends FlatSpec {
     val id = 1
     val text = "Short DocumEnt teXt"
 
-    val pageIndex: DocIndex = index.indexText(text, id)
+    index.indexText(text, id)
 
-    assert(pageIndex == shortDocumentTextIndex)
+    assert(index.index == shortDocumentTextIndex)
   }
 
   "combineIndices" should "set a new index" in {
     val index = new Index with BuildIndex
     val id = 1
 
-    val pageIndex = index.indexText(shortDocumentText, id)
-    index.combineIndices(pageIndex)
+    index.indexText(shortDocumentText, id)
 
     val expIndex = shortDocumentTextIndex
 
@@ -95,14 +94,12 @@ class BuildIndexSpec extends FlatSpec {
     val index = new Index with BuildIndex
     val id = 1
 
-    val pageIndex = index.indexText(shortDocumentText, id)
-    index.combineIndices(pageIndex)
+    index.indexText(shortDocumentText, id)
 
     val id2 = 2
     // other is a stop word
     val text2 = "document other long short"
-    val pageIndex2 = index.indexText(text2, id2)
-    index.combineIndices(pageIndex2)
+    index.indexText(text2, id2)
 
     val expIndex = Map(3556653 -> List((1,2)),
     				   109413500 -> List((1,0), (2,2)),
