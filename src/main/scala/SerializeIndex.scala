@@ -9,7 +9,7 @@ trait SerializeIndex extends Index {
   val indexFilename = "wikipedia_index.out"
   val tokenFilename = "wikipedia_tokens.out"
   val titleFilename = "wikipedia_titles.out"
-  val docSizeFilename = "wikipedia_titles.out"
+  val docSizeFilename = "wikipedia_sizes.out"
 
   /*
    * Serializing index
@@ -132,15 +132,19 @@ trait SerializeIndex extends Index {
   }
 
   def loadDocSizeMap() {
-    Source.fromFile(docSizeFilename).getLines.map { line =>
-      parseIdCount(line)
-    }.toSeq
+    loadDocSizeMap(docSizeFilename)
+  }
+
+  def loadDocSizeMap(filename: String) {
+    for (line <- Source.fromFile(filename).getLines) {
+      val (id, count) = parseIdCount(line)
+      docSizeMap.put(id, count)
+    }
   }
 
   /**
    * Store the index in index, title, and token files
    */
-  // indexFilename: String, titleFilename: String, tokenFilename: String
   def serialize() {
     dumpIndex(indexFilename)
     dumpMap(tokenMap.toMap, tokenFilename)

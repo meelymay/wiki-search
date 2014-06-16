@@ -12,7 +12,6 @@ trait SearchIndex extends Index {
    * Calculate a simple tf-idf.
    */
   def tfIdf(doc: Seq[Position], numDocs: Int, docSize: Int): Double = {
-    // TODO should use frequency of term instead of count in document
     val tf: Double = doc.size/docSize.toDouble
     val idf: Double = Math.log(titleMap.size.toDouble/numDocs)
     tf*idf
@@ -61,6 +60,7 @@ trait SearchIndex extends Index {
       (token, docs.keys.toSet)
     }.toMap
 
+    // get the per term scores of all documents
     val docScores: Seq[(DocId, Double)] = documents.toSeq
       .flatMap { case (token, docs) =>
         docs.toSeq.map { case (id, pos) =>
@@ -69,6 +69,7 @@ trait SearchIndex extends Index {
         }
       }
 
+    // sum scores of documents and sort
     docScores.groupBy { case (id, score) => id }
       .map { case (id, scores) =>
         (id, scores.map { case (doc, score) => score }.sum)
