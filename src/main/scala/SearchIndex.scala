@@ -113,15 +113,11 @@ object SearchMain {
     val wikipedia = new Index with SearchIndex with SerializeIndex
     wikipedia.deserialize()
 
-    println("title map size: " + wikipedia.titleMap.size)
-    println("token map size: " + wikipedia.tokenMap.size)
-
-    for (query <- args) {
-      println("Searching for " + query)
-      val ids = wikipedia.search(query)
-      for (id <- ids) {
-        println(id)
-      }
+    val query = args.mkString(" ")
+    println("Searching for " + query)
+    val ids = wikipedia.search(query)
+    for (id <- ids) {
+      println(id)
     }
   }
 }
