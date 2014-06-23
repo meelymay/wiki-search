@@ -57,8 +57,8 @@ class SearchIndexSpec extends FlatSpec {
 				   "cow")
 	val index = createIndex(docs)
 	val matching = index.matchingDocs("cat\\ dog")
-	val expMatching = Map(0 -> Seq(1),
-						  2 -> Seq(1, 3))
+	val expMatching = Map(0 -> Set(1),
+						  2 -> Set(1, 3))
 
 	assert(matching == expMatching)
   }

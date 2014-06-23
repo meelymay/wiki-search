@@ -64,10 +64,11 @@ trait SearchIndex extends Index {
 
     // full intersection set
     val allIntersect: Set[DocId] = docIds.reduceLeft(_ & _)
+
     // remove non-all-intersect documents from each token's document map
     val containingDocs: Seq[Map[DocId, Positions]] = documents.map {
       docMap: Map[DocId, Positions] => docMap.filter { case (docId, pos) =>
-        docIds.contains(docId)
+        allIntersect.contains(docId)
       }
     }
 
@@ -78,7 +79,7 @@ trait SearchIndex extends Index {
     containingDocs(0).flatMap { case (docId, positions) =>
       val pos: Positions = positions.filter { position: Position =>
         // check that the subsequent position exists in the subsequent document
-        val consecutiveDocs = for (docIndex <- 1 to containingDocs.size
+        val consecutiveDocs = for (docIndex <- 0 to containingDocs.size-1
           if (containingDocs(docIndex)(docId).contains(position + docIndex)) ) yield true
         consecutiveDocs.size == containingDocs.size
       }
@@ -102,6 +103,9 @@ trait SearchIndex extends Index {
     }
   }
 
+  /**
+   * Get matching documents for term, dispatching to exact if multi-word.
+   */
   def matchingDocs(term: String): Map[DocId, Positions] = {
     if (term.contains(" ")) {
       matchingExactDocs(getTerms(term).map(_.hashCode))
@@ -110,6 +114,9 @@ trait SearchIndex extends Index {
     }
   }
 
+  /**
+   * Parse the query into terms, allowing \ escaping for multi-word terms.
+   */
   def parseQuery(query: String): Seq[String] = {
     val terms = query.split("\\s+").toSeq
     var last = 0

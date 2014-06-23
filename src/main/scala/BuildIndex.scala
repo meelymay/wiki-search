@@ -18,7 +18,6 @@ trait BuildIndex extends Index {
     val terms = getTerms(text)
     docSizeMap.put(id, terms.size)
 
-    // val pageIndex = new DocIndex()
     for ((word, position) <- terms.view.zipWithIndex) {
       val token = word.hashCode
       // TODO this hashCode is only 32 bit Ints
@@ -51,12 +50,11 @@ trait BuildIndex extends Index {
    */
   def addPageToIndex(page: Page) {
     val (id, title, text) = page
-    if (id % 5000 == 0) println(id + " " + title)
+    // if (id % 5000 == 0) println(id + " " + title)
     titleMap(id) = title
     val start = System.nanoTime()
     val pageIndex = indexText(text, id)
     val start2 = System.nanoTime()
-    // combineIndices(pageIndex)
   }
 
   /**
