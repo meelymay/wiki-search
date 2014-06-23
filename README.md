@@ -27,7 +27,7 @@ NOTE: JVM memory should be at least 2G
 
 ##Runtime Complexity
 
-###Build the index
+###Build the Index
 
 The time complexity of building the index is linear in the total number of terms (non-unique) in the wikipedia dump, as is the space complexity.
 
@@ -85,7 +85,7 @@ On a machine with more memory, this indexer should be able to handle a much bigg
 My ranking algorithm simply sums the tf-idf score for every (term, document) pair, where the terms are the terms in the query. The simple sum means that a document may still be ranked highly in the results even if it were missing several terms simply because one term's tf-idf was very high. My ranking does not take into consideration the adjacency of terms (other than for multi-word terms), or how near the beginning of an article a term is, or the order of the search terms (again, other than for multi-word terms).
 
 
-##Improvements (in order of predicted improvement to result relevance)
+##Improvements
 
 ###Search Titles
 Currently titles are not indexed separately from the text, even though is probably the highest indicator of relevance when terms in the query match terms in the title.
