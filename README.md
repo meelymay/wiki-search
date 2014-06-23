@@ -4,15 +4,23 @@
 
 To build the index run:
 
+~~~
 $ sbt "run-main BuildMain [wikipedia tsv]"
+~~~
 
 Then run the following to search the index:
 
+~~~
 $ sbt "run-main SearchMain [query]"
+~~~
 
 All articles containing at least one of the terms in the query will be output, one per line, with the most relevant articles appearing first. You can include multi-word phrases by escaping the space character, eg. "Sound\ Cloud."
 
-Tests can be run using: $ sbt test
+Tests can be run using:
+
+~~~
+$ sbt test
+~~~
 
 NOTE: JVM memory should be at least 2G
 
