@@ -20,13 +20,17 @@ object Index {
   val stopFilename = "src/main/resources/stop.txt"
   val stop = Source.fromFile(stopFilename).getLines.toSet
 
+  def cleanTerm(term: String): String = {
+    term.toLowerCase.filter(Character.isLetter(_))
+  }
+
   /**
    * Utility method to get single terms from strings.
    */
   def getTerms(text: String): Seq[String] = {
     // TODO stem the terms here?
     text.split("\\s+")
-      .map(_.toLowerCase.filter(Character.isLetter(_)))
+      .map(cleanTerm(_))
       .filter(!stop.contains(_))
   }
 }

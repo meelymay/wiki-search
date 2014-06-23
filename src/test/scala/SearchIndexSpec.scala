@@ -2,24 +2,24 @@ import org.scalatest._
 
 class SearchIndexSpec extends FlatSpec {
 
+  "parseQuery" should "find compound terms" in {
+	val s = "sound\\ cloud is cool"
+	val index = createIndex(Seq())
+	assert(index.parseQuery(s) == Seq("sound cloud", "is", "cool"))
+  }
+
   "tfidf" should "compute freq over inverse doc freq" in {
   	val docs = Seq("dog words bone park walk",
   				   "cats walk jump land milk sleep",
   				   "people words milk walk park sleep")
 	val index = createIndex(docs)
 
-	val doc = Seq(1,2,3,4)
+	val doc = Set(1,2,3,4)
 	val numDocs = 2
 	val docSize = 5
     val tfidf = index.tfIdf(doc, numDocs, docSize)
     val expTfIdf = (4/5.0)*Math.log(3.0/numDocs)
     assert(tfidf == expTfIdf)
-  }
-
-  "score" should "count occurrences" in {
-  	val index = createIndex(Seq())
-  	val pos = Seq(1,2,3,4,5)
-  	assert(index.score(pos) == 5)
   }
 
   "rank" should "score more occurrences higher" in {
@@ -50,6 +50,19 @@ class SearchIndexSpec extends FlatSpec {
 	assert(ranked == expRanked)
   }
 
+  "matchingExactDocs" should "get docs that match subsequent terms" in {
+	val docs = Seq("cat cat dog cat cat",
+				   "dog cat cat",
+				   "fish cat dog cat dog",
+				   "cow")
+	val index = createIndex(docs)
+	val matching = index.matchingDocs("cat\\ dog")
+	val expMatching = Map(0 -> Seq(1),
+						  2 -> Seq(1, 3))
+
+	assert(matching == expMatching)
+  }
+
   "matchingDocs" should "get only docs with the term" in {
 	val docs = Seq("cat cat cat cat",
 				   "dog cat cat",
@@ -57,9 +70,9 @@ class SearchIndexSpec extends FlatSpec {
 				   "cow")
   	val index = createIndex(docs)
   	val matching = index.matchingDocs("cat")
-	val expMatching = Map(0 -> Seq(0,1,2,3),
-						  1 -> Seq(1,2),
-						  2 -> Seq(1))
+	val expMatching = Map(0 -> Set(0,1,2,3),
+						  1 -> Set(1,2),
+						  2 -> Set(1))
 
   	assert(matching == expMatching)
   }

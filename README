@@ -8,7 +8,7 @@ Then run the following to search the index:
 
 $ sbt "run-main SearchMain [query]"
 
-All articles containing at least one of the terms in the query will be output, one per line, with the most relevant articles appearing first.
+All articles containing at least one of the terms in the query will be output, one per line, with the most relevant articles appearing first. You can include multi-word phrases by escaping the space character, eg. "Sound\ Cloud."
 
 NOTE: JVM memory should be at least 2G
 
@@ -17,7 +17,7 @@ NOTE: JVM memory should be at least 2G
 
 ##BuildIndex
 
-Time complexity:
+The time complexity of building the index is linear in the total number of terms (non-unique) in the wikipedia dump, as is the space complexity.
 
 for line in file
     add to title map (constant)
@@ -26,8 +26,6 @@ for line in file
         check existence (constant)
         add to list (constant)
         add to size map (constant)
-
-Space complexity:
 
 Because I am storing all positions of every term in the corpus, the size of the index in memory is of the same order as the size of the corpus. However, since I convert all titles and terms (Strings) to ids and tokens (Ints), the in-memory size should be considerably smaller.
 
@@ -44,13 +42,19 @@ These are both linear in the size of the index. Files are read line by line and 
 
 #Ranking Limitations
 
-My ranking algorithm is very naive and simply sums the tf-idf score for each term in the document. It does not take into consideration the adjacency of terms, or how near the beginning of an article a term is, or the order of the search terms.
+My ranking algorithm is very simple: it sums the tf-idf score for every (term, document) pair, where the terms are the terms in the query. It does not take into consideration the adjacency of terms, or how near the beginning of an article a term is, or the order of the search terms.
 
 
-#Improvements
+#Improvements (in order of predicted improvement to result relevance)
 
 ##Search Titles
+Currently titles are not indexed separately from the text, even though is probably the highest indicator of relevance when terms in the query match terms in the title.
+
 ##Stemming terms
+Stemming the terms in both articles and queries would have several benefits. Firstly, it would increase the coverage of the index by allowing queries to match articles with all words with the same root as the term (eg. "run" matches "running," "dog" matches "dogs," "creator" matches "creation"). Secondly, it would decrease the number of keys in the index (though the number of positions stored would be the same).
+
 ##Ranking by term adjacency
+I built the index in order to support multi-term exact queries by including 
+
 ##Synonym model
 ##Reconstructing snippets
