@@ -100,7 +100,7 @@ Since the index includes position information for the terms, it might be helpful
 In addition to stemming the terms, it might be helpful to come up with a synonym model to also include documents with the synonyms of the search terms. I would probably add some discounting to these documents and still rank the documents with the actual terms more highly. Building the model for these synonyms could be done when building the index, an additional map from tokens to their synonym's tokens, maybe with some weights. Actually determining which words are synonyms would be a challenging problem on its own; I imagine we could use some statistical models based on the word's surrounding context and comparing those.
 
 ###Spelling correction
-It could be implemented similarly to the synonym model.
+The spelling correction model would rely on string-edit-distance, and then could be applied similarly to the synonym model.
 
 ###Reconstructing snippets
 Showing snippets along with the document title would be a shnazzy feature, but it (obviously) would not improve relevance.
