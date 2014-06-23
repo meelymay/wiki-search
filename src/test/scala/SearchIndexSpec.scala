@@ -41,9 +41,9 @@ class SearchIndexSpec extends FlatSpec {
   				   "fish cat cow moo",
   				   "cow", "a", "b", "c")
   	val index = createIndex(docs)
-	val matching = Map(98262   -> index.matchingDocs("cat"),
-					   99644  -> index.matchingDocs("dog"),
-					   3143256 -> index.matchingDocs("fish"))
+	val matching = Seq(index.matchingDocs("cat"),
+					   index.matchingDocs("dog"),
+					   index.matchingDocs("fish"))
 	val ranked = index.rankMultiple(matching)
 	val expRanked = Seq(1,0,2)
 
@@ -110,6 +110,18 @@ class SearchIndexSpec extends FlatSpec {
 	val index = createIndex(docs)
 	val ranked = index.search("cow")
 	val expRanked = Seq("cow", "fish")
+
+	assert(ranked == expRanked)
+  }
+
+  it should "find multi-word terms" in {
+	val docs = Seq("cat dog other",
+				   "dog cat fish",
+				   "fish cat cow pasture moo",
+				   "cow")
+	val index = createIndex(docs)
+	val ranked = index.search("cow\\ pasture")
+	val expRanked = Seq("fish")
 
 	assert(ranked == expRanked)
   }

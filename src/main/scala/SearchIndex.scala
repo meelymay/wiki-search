@@ -32,14 +32,10 @@ trait SearchIndex extends Index {
   /**
    * Order the set of articles from the articles that matched each term in the query.
    */
-  def rankMultiple(documents: Map[Token, Map[DocId, Positions]]): Seq[DocId] = {
-    val docIds: Map[Int, Set[Int]] = documents.map { case (token, docs) =>
-      (token, docs.keys.toSet)
-    }.toMap
-
+  def rankMultiple(documents: Seq[Map[DocId, Positions]]): Seq[DocId] = {
     // get the per term scores of all documents
-    val docScores: Seq[(DocId, Double)] = documents.toSeq
-      .flatMap { case (token, docs) =>
+    val docScores: Seq[(DocId, Double)] = documents
+      .flatMap { docs =>
         docs.toSeq.map { case (id, pos) =>
           val score = tfIdf(pos, docs.size, docSizeMap(id))
           (id, score)
@@ -122,7 +118,7 @@ trait SearchIndex extends Index {
     var last = 0
     for (i <- 0 to terms.size-1
             if (terms(i)(terms(i).size-1) != '\\')) yield {
-      val x: Seq[String] = terms.slice(last, i).map {s: String => s.slice(0, s.size-1) }.toSeq ++ Seq(terms(i))
+      val x: Seq[String] = terms.slice(last, i+1).toSeq
       last = i + 1
       x.map(cleanTerm(_)).mkString(" ")
     }
@@ -133,9 +129,8 @@ trait SearchIndex extends Index {
    */
   def search(query: String): Seq[String] = {
     val terms = parseQuery(query)
-
-    val tokens = terms.map(_.hashCode)
-    val documents = tokens.map { token => (token, matchingDocs(token)) }.toMap
+    println("Searching for " + terms)
+    val documents = terms.map { term => matchingDocs(term) }
 
     rankMultiple(documents).map { titleMap(_) }
   }
@@ -148,7 +143,6 @@ object SearchMain {
     wikipedia.deserialize()
 
     val query = args.mkString(" ")
-    println("Searching for " + query)
     val ids = wikipedia.search(query)
     for (id <- ids) {
       println(id)

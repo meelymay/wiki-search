@@ -60,7 +60,8 @@ class SerializeIndexSpec extends FlatSpec {
 	val m = Seq((1, "Title Twenty"),
 				(345, "Eternal Sunshine"),
 				(987, "Adaptation Best Ever"))
-	val filename = "test_map"
+	// TODO these should be tmp files
+	val filename = "src/test/resources/test_map"
 	index.dumpMap(m.toMap, filename)
 	val readMap = index.loadIdMap(filename)
 	assert(m == readMap)
@@ -72,7 +73,8 @@ class SerializeIndexSpec extends FlatSpec {
 				(345, "1000"),
 				(987, "999"))
 	val expSizes = m.map { case (id, count) => (id, count.toInt) }.toMap
-	val filename = "test_size_map"
+	// TODO these should be tmp files
+	val filename = "src/test/resources/test_size_map"
 	index.dumpMap(m.toMap, filename)
 	index.loadDocSizeMap(filename)
 	assert(expSizes == index.docSizeMap)

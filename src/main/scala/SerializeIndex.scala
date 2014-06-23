@@ -6,10 +6,10 @@ import scala.io.{BufferedSource, Source}
 trait SerializeIndex extends Index {
   import Index._
 
-  val indexFilename = "wikipedia_index.out"
-  val tokenFilename = "wikipedia_tokens.out"
-  val titleFilename = "wikipedia_titles.out"
-  val docSizeFilename = "wikipedia_sizes.out"
+  val indexFilename = "src/main/resources/wikipedia_index.out"
+  val tokenFilename = "src/main/resources/wikipedia_tokens.out"
+  val titleFilename = "src/main/resources/wikipedia_titles.out"
+  val docSizeFilename = "src/main/resources/wikipedia_sizes.out"
 
   /*
    * Serializing index
