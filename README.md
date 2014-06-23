@@ -27,7 +27,7 @@ NOTE: JVM memory should be at least 2G
 
 ##Runtime Complexity
 
-###BuildIndex
+###Build the index
 
 The time complexity of building the index is linear in the total number of terms (non-unique) in the wikipedia dump, as is the space complexity.
 
@@ -90,17 +90,14 @@ My ranking algorithm simply sums the tf-idf score for every (term, document) pai
 ###Search Titles
 Currently titles are not indexed separately from the text, even though is probably the highest indicator of relevance when terms in the query match terms in the title.
 
-###Stemming terms
+###Stemming Terms
 Stemming the terms in both articles and queries would have several benefits. Firstly, it would increase the coverage of the index by allowing queries to match articles with all words with the same root as the term (eg. "run" matches "running," "dog" matches "dogs," "creator" matches "creation"). Secondly, it would decrease the number of keys in the index (though the number of positions stored would be the same). My approach for actually stemming the terms would probably involve lists of common prefixes and suffixes (eg. "-ing, "un-", "-s").
 
-###Ranking by term proximity
+###Ranking by Term Proximity
 Since the index includes position information for the terms, it might be helpful to consider how close terms are in a document (suggesting that they might be the related concepts that the searcher was looking for).
 
-###Synonym model
+###Synonym Model
 In addition to stemming the terms, it might be helpful to come up with a synonym model to also include documents with the synonyms of the search terms. I would probably add some discounting to these documents and still rank the documents with the actual terms more highly. Building the model for these synonyms could be done when building the index, an additional map from tokens to their synonym's tokens, maybe with some weights. Actually determining which words are synonyms would be a challenging problem on its own; I imagine we could use some statistical models based on the word's surrounding context and comparing those.
 
-###Spelling correction
+###Spelling Correction
 The spelling correction model would rely on string-edit-distance, and then could be applied similarly to the synonym model.
-
-###Reconstructing snippets
-Showing snippets along with the document title would be a shnazzy feature, but it (obviously) would not improve relevance.
