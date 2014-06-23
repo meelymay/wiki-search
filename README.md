@@ -23,6 +23,7 @@ NOTE: JVM memory should be at least 2G
 
 The time complexity of building the index is linear in the total number of terms (non-unique) in the wikipedia dump, as is the space complexity.
 
+~~~
 for line in file
     add to title map (constant)
     for term in line
@@ -30,6 +31,7 @@ for line in file
         check existence (constant)
         add to list (constant)
         add to size map (constant)
+~~~
 
 Because I am storing all positions of every term in the corpus, the size of the index in memory is of the same order as the size of the corpus. However, since I convert all titles and terms (Strings) to ids and tokens (Ints), the in-memory size should be considerably smaller. The Strings are each only stored once in the title and token maps.
 
@@ -41,25 +43,30 @@ These are both linear in the size of the index. Files are read line by line and 
 
 The runtime of the ranking algorithm is parameterized by how many terms are in the query (t) and how many matching documents there are (d). For multi-word queries we must additionally consider how many words per term (w) and positions per document (p).
 
+~~~
 for each term (t)
     get matching documents (linear(d) or Multi-word Term Complexity)
     for each document for term
         score (constant)
 sort scores (t*d log (t*d))
+~~~
 
 Multi-word Term Complexity: for multi-word terms with (w) words, finding the matching documents is also dependent on the number of matching positions in the documents (p).
 
+~~~
 get all intersecting docs: O(w*d)
 
 for each intersecting docs (d)
     for each position in doc (p)
         for each word (w)
             check if the corresponding position exists in the doc (constant)
+~~~
 
 Worst case, for a query with (t) multi-word terms with (w) words and (p) positions per matching document, of which there are (d), the runtime would be:
 
+~~~
 O(t*w*d*p + t*d log (t*d))
-
+~~~
 
 ##Scalability
 
